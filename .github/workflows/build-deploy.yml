@@ -47,3 +47,4 @@ jobs:
         id: set-variables
         run: |
           echo "IMAGE_VERSION=${{ steps.date.outputs.tag }}" >> $GITHUB_OUTPUT
+
