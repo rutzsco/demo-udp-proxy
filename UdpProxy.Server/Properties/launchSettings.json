@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "UdpProxy.Server": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
