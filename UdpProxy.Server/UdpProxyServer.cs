@@ -1,21 +1,23 @@
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using Azure.Messaging.ServiceBus; // Added for Service Bus
 
 public class UdpProxyServer
 {
     private readonly int _port;
-    private readonly ConcurrentQueue<DeviceMessage> _messageQueue;
+    // private readonly ConcurrentQueue<DeviceMessage> _messageQueue; // Removed ConcurrentQueue
+    private readonly ServiceBusSender _serviceBusSender; // Added ServiceBusSender
     private readonly MessageStats _stats;
     private UdpClient? _udpClient;
     private CancellationTokenSource _cancellationTokenSource = new();
 
-    public UdpProxyServer(int port, ConcurrentQueue<DeviceMessage> messageQueue, MessageStats stats)
+    // Updated constructor to accept ServiceBusSender instead of ConcurrentQueue
+    public UdpProxyServer(int port, ServiceBusSender serviceBusSender, MessageStats stats)
     {
         _port = port;
-        _messageQueue = messageQueue;
+        _serviceBusSender = serviceBusSender;
         _stats = stats;
     }
 
@@ -32,7 +34,8 @@ public class UdpProxyServer
                 try
                 {
                     var result = await _udpClient.ReceiveAsync();
-                    _ = Task.Run(() => ProcessMessage(result.Buffer, result.RemoteEndPoint));
+                    // Updated to call ProcessMessageAsync as it's now async due to Service Bus
+                    _ = Task.Run(async () => await ProcessMessageAsync(result.Buffer, result.RemoteEndPoint));
                 }
                 catch (ObjectDisposedException)
                 {
@@ -51,7 +54,8 @@ public class UdpProxyServer
         }
     }
 
-    private void ProcessMessage(byte[] buffer, IPEndPoint remoteEndPoint)
+    // Renamed to ProcessMessageAsync and made async
+    private async Task ProcessMessageAsync(byte[] buffer, IPEndPoint remoteEndPoint)
     {
         try
         {
@@ -63,10 +67,13 @@ public class UdpProxyServer
                 deviceMessage.SourceEndPoint = remoteEndPoint;
                 deviceMessage.Timestamp = DateTime.Now;
                 
-                _messageQueue.Enqueue(deviceMessage);
+                // Send message to Azure Service Bus
+                var serviceBusMessage = new ServiceBusMessage(messageJson);
+                await _serviceBusSender.SendMessageAsync(serviceBusMessage);
+                
                 _stats.IncrementMessage();
                 
-                Console.WriteLine($"Received message from {remoteEndPoint}: Device {deviceMessage.DeviceId}");
+                Console.WriteLine($"Received and sent to Service Bus: message from {remoteEndPoint}: Device {deviceMessage.DeviceId}");
             }
             else
             {

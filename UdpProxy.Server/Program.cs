@@ -1,24 +1,36 @@
-﻿using System.Collections.Concurrent;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using Azure.Messaging.ServiceBus;
+using Microsoft.Extensions.Configuration; // Added for Configuration
+using Microsoft.Extensions.Configuration.Json; // Added for AddJsonFile
 
 // Configuration
 const int UDP_PORT = 8080;
 
-// In-memory message queue
-var messageQueue = new ConcurrentQueue<DeviceMessage>();
+// Load configuration from local.settings.json
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+    .Build();
+
+string serviceBusConnectionString = configuration["ServiceBusConnectionString"] ?? throw new InvalidOperationException("ServiceBusConnectionString not found in configuration.");
+string serviceBusQueueName = configuration["ServiceBusQueueName"] ?? throw new InvalidOperationException("ServiceBusQueueName not found in configuration.");
+
 var messageStats = new MessageStats();
 
 Console.WriteLine($"UDP Proxy Server starting on port {UDP_PORT}...");
 
+// Initialize Azure Service Bus
+await using var client = new ServiceBusClient(serviceBusConnectionString);
+await using var sender = client.CreateSender(serviceBusQueueName);
+
 // Start the UDP server
-var udpServer = new UdpProxyServer(UDP_PORT, messageQueue, messageStats);
+var udpServer = new UdpProxyServer(UDP_PORT, sender, messageStats); // Updated constructor
 var serverTask = Task.Run(() => udpServer.StartAsync());
 
 // Start the monitoring task
-var monitorTask = Task.Run(() => MonitorMessages(messageQueue, messageStats));
+var monitorTask = Task.Run(() => MonitorMessages(messageStats)); // Updated to pass only stats
 
 // Wait for shutdown signal
 Console.WriteLine("Press 'q' to quit the server...");
@@ -55,38 +67,14 @@ await Task.WhenAny(serverTask, monitorTask);
 Console.WriteLine("Server stopped.");
 
 // Monitor and display message statistics
-static async Task MonitorMessages(ConcurrentQueue<DeviceMessage> queue, MessageStats stats)
+static async Task MonitorMessages(MessageStats stats) // Removed queue parameter
 {
     while (true)
     {
         await Task.Delay(5000); // Update every 5 seconds
         
-        Console.WriteLine($"\n--- Message Statistics ---");
+        Console.WriteLine($"\\n--- Message Statistics ---");
         Console.WriteLine($"Total Messages Received: {stats.TotalMessages}");
-        Console.WriteLine($"Messages in Queue: {queue.Count}");
         Console.WriteLine($"Last Message Time: {stats.LastMessageTime:yyyy-MM-dd HH:mm:ss}");
-        
-        // Display recent messages
-        if (queue.Count > 0)
-        {
-            Console.WriteLine("\n--- Recent Messages ---");
-            var tempQueue = new List<DeviceMessage>();
-            var displayCount = Math.Min(5, queue.Count);
-            
-            for (int i = 0; i < displayCount; i++)
-            {
-                if (queue.TryDequeue(out var message))
-                {
-                    tempQueue.Add(message);
-                    Console.WriteLine($"Device: {message.DeviceId}, Timestamp: {message.Timestamp:HH:mm:ss}, Data: {message.Data}");
-                }
-            }
-            
-            // Re-queue the messages (in a real scenario, you'd process them)
-            foreach (var msg in tempQueue)
-            {
-                queue.Enqueue(msg);
-            }
-        }
     }
 }
