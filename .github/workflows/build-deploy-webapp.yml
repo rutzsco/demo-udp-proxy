@@ -4,9 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'UdpProxy.Portal/**'
-      - '.github/workflows/build-deploy-webapp.yml'
+
 jobs:
   build-webapp:
     runs-on: ubuntu-latest
@@ -43,7 +41,7 @@ jobs:
           context: ./UdpProxy.Portal
           file: ./UdpProxy.Portal/Dockerfile
           push: true
-          tags: ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}:${{ steps.date.outputs.tag }}
+          tags: ${{ env.CONTAINER_REGISTRY_URL }}/demo-udp-proxy-ui:${{ steps.date.outputs.tag }}
 
       - name: Set image name for other jobs
         id: set-variables
