@@ -4,7 +4,8 @@ using System.Text;
 using System.Text.Json;
 
 // Configuration
-const string SERVER_HOST = "localhost";
+//const string SERVER_HOST = "20.237.5.127";
+const string SERVER_HOST = "localhost"; // Change to your server's IP or hostname
 const int SERVER_PORT = 8080;
 
 Console.WriteLine("UDP Proxy Client - Device Simulator");

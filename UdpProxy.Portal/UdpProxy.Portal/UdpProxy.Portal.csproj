@@ -9,6 +9,9 @@
   <ItemGroup>
     <ProjectReference Include="..\UdpProxy.Portal.Client\UdpProxy.Portal.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.17" />
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.19.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.26.0" />
   </ItemGroup>
 
 </Project>

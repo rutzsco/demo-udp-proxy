@@ -1,6 +1,13 @@
 ﻿@inherits LayoutComponentBase
+@using UdpProxy.Portal.Client.Components
 
-@Body
+<div class="page">
+    <Navigation />
+    
+    <main>
+        @Body
+    </main>
+</div>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.

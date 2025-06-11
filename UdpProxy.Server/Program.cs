@@ -9,9 +9,10 @@ using Microsoft.Extensions.Configuration.Json; // Added for AddJsonFile
 // Configuration
 const int UDP_PORT = 8080;
 
-// Load configuration from local.settings.json
+// Load configuration from appsettings.json
 var configuration = new ConfigurationBuilder()
-    .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true) // Override with local settings if present
     .Build();
 
 string serviceBusConnectionString = configuration["ServiceBusConnectionString"] ?? throw new InvalidOperationException("ServiceBusConnectionString not found in configuration.");
