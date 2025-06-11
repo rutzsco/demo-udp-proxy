@@ -18,51 +18,40 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CONTAINER_REGISTRY_URL: ${{ vars.CONTAINER_REGISTRY_URL}}
-      WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME: ${{ vars.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}
+      CONTAINER_REGISTRY_REPOSITORY_NAME: ${{ vars.CONTAINER_REGISTRY_REPOSITORY_NAME }}
     outputs:
       image-version: ${{ steps.set-variables.outputs.IMAGE_VERSION }}
     steps:
       
-      - name: Echo Variables
+      - name: ECHO VARIABLES
         run: |
           echo "IMAGE_VERSION = $IMAGE_VERSION"
           echo "CONTAINER_REGISTRY_URL = $CONTAINER_REGISTRY_URL" 
-          echo "WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME = $WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME"  
+          echo "CONTAINER_REGISTRY_REPOSITORY_NAME = $CONTAINER_REGISTRY_REPOSITORY_NAME"  
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
+      - name: Log in to ACR
+        uses: docker/login-action@v1
         with:
           registry: ${{ env.CONTAINER_REGISTRY_URL }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           
-      - name: Generate image tag
-        id: generate-tag
+      - name: Get the current date
+        id: date
         run: echo "tag=latest" >> $GITHUB_OUTPUT
         
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build & Push UdpProxy.Portal Web App
-        uses: docker/build-push-action@v5
+      - name: Build & Push UdpProxy.Portal
+        uses: docker/build-push-action@v2
         with:
           context: ./UdpProxy.Portal
           file: ./UdpProxy.Portal/Dockerfile
           push: true
-          tags: ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}:${{ steps.generate-tag.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.CONTAINER_REGISTRY_REPOSITORY_NAME }}:${{ steps.date.outputs.tag }}
 
       - name: Set image name for other jobs
         id: set-variables
         run: |
-          echo "IMAGE_VERSION=${{ steps.generate-tag.outputs.tag }}" >> $GITHUB_OUTPUT
-
-      - name: Output container image details
-        run: |
-          echo "🚀 Web App container built and pushed successfully!"
-          echo "Image: ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}:${{ steps.generate-tag.outputs.tag }}"
-          echo "Latest: ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}:latest"
+          echo "IMAGE_VERSION=${{ steps.date.outputs.tag }}" >> $GITHUB_OUTPUT
