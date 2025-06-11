@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CONTAINER_REGISTRY_URL: ${{ vars.CONTAINER_REGISTRY_URL}}
-      CONTAINER_REGISTRY_REPOSITORY_NAME: ${{ vars.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME}}
+      WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME: ${{ vars.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME}}
     outputs:
       image-version: ${{ steps.set-variables.outputs.IMAGE_VERSION }}
     steps:
@@ -27,7 +27,7 @@ jobs:
         run: |
           echo "IMAGE_VERSION = $IMAGE_VERSION"
           echo "CONTAINER_REGISTRY_URL = $CONTAINER_REGISTRY_URL" 
-          echo "CONTAINER_REGISTRY_REPOSITORY_NAME = $CONTAINER_REGISTRY_REPOSITORY_NAME"  
+          echo "WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME = $WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME"  
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -49,7 +49,7 @@ jobs:
           context: ./UdpProxy.Portal
           file: ./UdpProxy.Portal/Dockerfile
           push: true
-          tags: ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.CONTAINER_REGISTRY_REPOSITORY_NAME }}:${{ steps.date.outputs.tag }}
+          tags: ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}:${{ steps.date.outputs.tag }}
 
       - name: Set image name for other jobs
         id: set-variables
