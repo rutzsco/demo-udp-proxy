@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CONTAINER_REGISTRY_URL: ${{ vars.CONTAINER_REGISTRY_URL}}
-      CONTAINER_REGISTRY_REPOSITORY_NAME: ${{ vars.CONTAINER_REGISTRY_REPOSITORY_NAME }}
+      CONTAINER_REGISTRY_REPOSITORY_NAME: ${{ vars.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME}}
     outputs:
       image-version: ${{ steps.set-variables.outputs.IMAGE_VERSION }}
     steps:
