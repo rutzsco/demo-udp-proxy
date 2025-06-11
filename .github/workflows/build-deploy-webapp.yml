@@ -52,7 +52,7 @@ jobs:
           context: ./UdpProxy.Portal
           file: ./UdpProxy.Portal/Dockerfile
           push: true
-          tags: ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.CONTAINER_REGISTRY_REPOSITORY_NAME }}:${{ steps.date.outputs.tag }}
+          tags: ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}:${{ steps.generate-tag.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
