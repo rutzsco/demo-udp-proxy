@@ -7,12 +7,6 @@ on:
     paths:
       - 'UdpProxy.Portal/**'
       - '.github/workflows/build-deploy-webapp.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'UdpProxy.Portal/**'
-
 jobs:
   build-webapp:
     runs-on: ubuntu-latest
