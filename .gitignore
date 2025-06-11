@@ -406,3 +406,4 @@ FodyWeavers.xsd
 *.sln.iml
 UdpProxy.Server/local.settings.json
 UdpProxy.Server/appsettings.Development.json
+UdpProxy.Portal/UdpProxy.Portal/appsettings.Development.json
