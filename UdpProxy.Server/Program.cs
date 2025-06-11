@@ -13,6 +13,7 @@ const int UDP_PORT = 8080;
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true) // Override with local settings if present
+    .AddEnvironmentVariables() // Add environment variables as a configuration source
     .Build();
 
 string serviceBusConnectionString = configuration["ServiceBusConnectionString"] ?? throw new InvalidOperationException("ServiceBusConnectionString not found in configuration.");
