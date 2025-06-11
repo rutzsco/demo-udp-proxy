@@ -1,12 +1,16 @@
 using UdpProxy.Portal.Components;
 using UdpProxy.Portal.Hubs;
 using UdpProxy.Portal.Services;
+using UdpProxy.Portal.Client.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
+
+// Register shared services for both server and client
+builder.Services.AddSingleton<MessageStatisticsService>();
 
 // Add SignalR with conditional Azure SignalR
 var signalRBuilder = builder.Services.AddSignalR();

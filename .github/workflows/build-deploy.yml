@@ -33,7 +33,7 @@ jobs:
           
       - name: Get the current date
         id: date
-        run: echo "tag=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+        run: echo "tag=latest" >> $GITHUB_OUTPUT
         
       - name: Build & Push UdpProxy.Server
         uses: docker/build-push-action@v2
