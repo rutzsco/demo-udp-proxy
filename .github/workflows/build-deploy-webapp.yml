@@ -1,0 +1,74 @@
+name: Build and Deploy Web App
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'UdpProxy.Portal/**'
+      - '.github/workflows/build-deploy-webapp.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'UdpProxy.Portal/**'
+
+jobs:
+  build-webapp:
+    runs-on: ubuntu-latest
+    env:
+      CONTAINER_REGISTRY_URL: ${{ vars.CONTAINER_REGISTRY_URL}}
+      WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME: ${{ vars.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}
+    outputs:
+      image-version: ${{ steps.set-variables.outputs.IMAGE_VERSION }}
+    steps:
+      
+      - name: Echo Variables
+        run: |
+          echo "IMAGE_VERSION = $IMAGE_VERSION"
+          echo "CONTAINER_REGISTRY_URL = $CONTAINER_REGISTRY_URL" 
+          echo "WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME = $WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME"  
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.CONTAINER_REGISTRY_URL }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          
+      - name: Generate image tag
+        id: generate-tag
+        run: |
+          # Use short commit SHA for versioning
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "tag=v${{ github.run_number }}-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "latest-tag=latest" >> $GITHUB_OUTPUT
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & Push UdpProxy.Portal Web App
+        uses: docker/build-push-action@v5
+        with:
+          context: ./UdpProxy.Portal
+          file: ./UdpProxy.Portal/Dockerfile
+          push: true
+          tags: |
+            ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}:${{ steps.generate-tag.outputs.tag }}
+            ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}:${{ steps.generate-tag.outputs.latest-tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Set image name for other jobs
+        id: set-variables
+        run: |
+          echo "IMAGE_VERSION=${{ steps.generate-tag.outputs.tag }}" >> $GITHUB_OUTPUT
+
+      - name: Output container image details
+        run: |
+          echo "🚀 Web App container built and pushed successfully!"
+          echo "Image: ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}:${{ steps.generate-tag.outputs.tag }}"
+          echo "Latest: ${{ env.CONTAINER_REGISTRY_URL }}/${{ env.WEBAPP_CONTAINER_REGISTRY_REPOSITORY_NAME }}:latest"
