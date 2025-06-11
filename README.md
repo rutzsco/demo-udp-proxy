@@ -126,10 +126,5 @@ The server provides real-time monitoring including:
 
 ## Future Enhancements
 
-- Persistent message storage (database integration)
 - Message acknowledgment system
-- Device authentication and authorization
-- Message filtering and routing rules
-- REST API for queue management
-- Metrics export (Prometheus, etc.)
 - Clustering support for high availability
