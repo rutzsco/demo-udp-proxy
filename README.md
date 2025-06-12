@@ -1,130 +1,249 @@
-# UDP Proxy - Device to Cloud Messaging
+# UDP Proxy Demo Solution
 
-This project implements a UDP proxy server that receives messages from IoT devices and queues them in memory for processing. It consists of a server component that listens for UDP messages and a client component that simulates device messages.
+A comprehensive demonstration of real-time device telemetry processing using UDP communication, Azure Service Bus messaging, and web-based monitoring portal with SignalR.
 
-## Architecture
+## 🏗️ Architecture Overview
 
-- **UdpProxy.Server**: Receives UDP messages from devices and queues them in memory
-- **UdpProxy.Client**: Simulates IoT devices sending messages to the proxy server
+![Architecture Diagram](architecture.png)
 
-## Features
-
-### Server Features
-- Listens on UDP port 8080 (configurable)
-- Receives JSON-formatted device messages
-- Queues messages in memory using thread-safe collections
-- Displays real-time statistics and recent messages
-- Supports graceful shutdown
-
-### Client Features
-- Simulates IoT device behavior
-- Supports single message sending
-- Continuous simulation mode with random sensor data
-- Batch message testing
-- Unique device ID generation
-
-## Message Format
-
-Messages are sent as JSON with the following structure:
-
-```json
-{
-  "DeviceId": "Device_MachineName_20240610_143022",
-  "Timestamp": "2024-06-10T14:30:22.123Z",
-  "Data": "Temperature: 25.6°C"
-}
+```
+UDP Devices → UDP Proxy Server → Azure Service Bus → Web Portal → Real-time Dashboard
 ```
 
-## Getting Started
+### Components
+
+1. **UDP Proxy Server** - Receives UDP messages from devices and forwards to Azure Service Bus
+2. **UDP Client Simulator** - Simulates IoT devices sending telemetry data
+3. **Web Portal** - Real-time monitoring dashboard with Blazor WebAssembly and SignalR
+4. **Azure Service Bus** - Message queue for reliable message processing
+5. **Azure SignalR** - Real-time web communication for live updates
+
+## 📦 Projects Structure
+
+### UdpProxy.Server
+- **Technology**: .NET 8.0 Console Application
+- **Purpose**: UDP server that receives device messages and forwards to Azure Service Bus
+- **Key Features**:
+  - Listens on UDP port 8080
+  - Processes JSON device messages
+  - Forwards messages to Azure Service Bus queue
+  - Message statistics monitoring
+  - Docker containerization support
+
+### UdpProxy.Client
+- **Technology**: .NET 8.0 Console Application  
+- **Purpose**: Simulates IoT devices sending telemetry data
+- **Key Features**:
+  - Generates unique device IDs
+  - Sends single messages, continuous simulation, or test batches
+  - Configurable server endpoint
+  - Random sensor data generation
+
+### UdpProxy.Portal
+- **Technology**: Blazor WebAssembly + ASP.NET Core 8.0
+- **Purpose**: Real-time web dashboard for monitoring device messages
+- **Key Features**:
+  - Real-time message display with SignalR
+  - Device statistics and analytics
+  - Active device monitoring
+  - Message history and filtering
+  - Bootstrap responsive UI
+  - Azure SignalR Service integration
+
+## 🚀 Quick Start
 
 ### Prerequisites
 - .NET 8.0 SDK
-- Visual Studio Code or Visual Studio
+- Azure Service Bus namespace with queue
+- Azure SignalR Service (optional, for scale)
+- Docker (optional, for containerization)
 
-### Building the Project
+### 1. Configure Azure Services
 
-```bash
-# Build the entire solution
-dotnet build UdpProxy.Server.sln
-
-# Or build individual projects
-dotnet build UdpProxy.Server/UdpProxy.Server.csproj
-dotnet build UdpProxy.Client/UdpProxy.Client.csproj
+#### Azure Service Bus Setup
+```json
+{
+  "ServiceBusConnectionString": "Endpoint=sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=your-key",
+  "ServiceBusQueueName": "telemetry"
+}
 ```
 
-### Running the Server
+#### Azure SignalR Setup (Optional)
+```json
+{
+  "ConnectionStrings": {
+    "AzureSignalR": "Endpoint=https://your-signalr.service.signalr.net;AccessKey=your-key;Version=1.0;"
+  }
+}
+```
 
+### 2. Run the Solution
+
+#### Start UDP Server
 ```bash
 cd UdpProxy.Server
 dotnet run
 ```
+Server will listen on UDP port 8080 and forward messages to Azure Service Bus.
 
-The server will start listening on UDP port 8080 and display:
-- Total messages received
-- Current queue size
-- Recent messages
-- Real-time statistics every 5 seconds
+#### Start Web Portal
+```bash
+cd UdpProxy.Portal/UdpProxy.Portal
+dotnet run
+```
+Portal available at: https://localhost:7060
 
-Press 'q' to gracefully shutdown the server.
-
-### Running the Client
-
+#### Run Device Simulator
 ```bash
 cd UdpProxy.Client
 dotnet run
 ```
+Choose from menu options to simulate device messages.
 
-The client provides several options:
-1. **Send single message**: Enter custom message data
-2. **Start continuous simulation**: Automatically sends random sensor data
-3. **Send test batch**: Sends 10 test messages quickly
-4. **Quit**: Exit the client
+## 🔧 Configuration
 
-## Docker Support
+### UDP Server Configuration
+Update `appsettings.json` in UdpProxy.Server:
+```json
+{
+  "ServiceBusConnectionString": "your-service-bus-connection-string",
+  "ServiceBusQueueName": "your-queue-name"
+}
+```
 
-The server includes Docker support for containerized deployment:
+### Portal Configuration  
+Update `appsettings.json` in UdpProxy.Portal:
+```json
+{
+  "ServiceBusConnectionString": "your-service-bus-connection-string",
+  "ServiceBusQueueName": "your-queue-name",
+  "ConnectionStrings": {
+    "AzureSignalR": "your-signalr-connection-string"
+  }
+}
+```
 
+### Client Configuration
+Modify `SERVER_HOST` in UdpProxy.Client Program.cs:
+```csharp
+const string SERVER_HOST = "your-server-ip-or-hostname";
+```
+
+## 🐳 Docker Support
+
+### Build UDP Server Container
 ```bash
 cd UdpProxy.Server
 docker build -t udp-proxy-server .
 docker run -p 8080:8080/udp udp-proxy-server
 ```
 
-## Configuration
+### Build Portal Container
+```bash
+cd UdpProxy.Portal
+docker build -t udp-proxy-portal .
+docker run -p 8080:8080 udp-proxy-portal
+```
 
-### Server Configuration
-- **UDP_PORT**: Port number for UDP listener (default: 8080)
-- **MAX_BUFFER_SIZE**: Maximum UDP packet size (default: 1024 bytes)
+## 📊 Features
 
-### Client Configuration
-- **SERVER_HOST**: Target server hostname (default: localhost)
-- **SERVER_PORT**: Target server port (default: 8080)
+![Application Screenshot](app.png)
 
-## Message Processing
+### Real-time Dashboard
+- **Total Messages**: Count of all processed messages
+- **Active Devices**: Devices active in last 5 minutes  
+- **Connection Status**: SignalR connection monitoring
+- **Message Rate**: Messages per minute statistics
 
-The server implements an in-memory queue using `ConcurrentQueue<DeviceMessage>` for thread-safe operations. In a production environment, you would typically:
+### Device Management
+- Device listing with activity status
+- Message count per device
+- Last seen timestamps
+- Filter active/inactive devices
+- Device-specific message viewing
 
-1. Process messages from the queue in a background service
-2. Store messages in a persistent database
-3. Forward messages to cloud services (Azure IoT Hub, AWS IoT Core, etc.)
-4. Implement message routing based on device type or location
+### Message Processing
+- JSON message serialization/deserialization
+- Message validation and error handling
+- Reliable delivery via Azure Service Bus
+- Real-time web broadcasting via SignalR
 
-## Monitoring
+## 🔄 Message Flow
 
-The server provides real-time monitoring including:
-- Message throughput statistics
-- Queue depth monitoring
-- Device activity tracking
-- Error logging and diagnostics
+1. **Device Client** sends JSON message via UDP
+2. **UDP Server** receives message, validates, and forwards to Service Bus
+3. **Service Bus** queues message for reliable processing
+4. **Portal Background Service** reads from Service Bus
+5. **SignalR Hub** broadcasts message to connected web clients
+6. **Web UI** displays message in real-time dashboard
 
-## Development Notes
+### Message Format
+```json
+{
+  "DeviceId": "Device_MachineName_20250612_143022",
+  "Timestamp": "2025-06-12T14:30:22.123Z",
+  "Data": "Temperature: 25.6°C",
+  "SourceEndPoint": "192.168.1.100:12345"
+}
+```
 
-- Messages are processed asynchronously to maintain high throughput
-- The queue is thread-safe and supports concurrent producers/consumers
-- Error handling includes JSON deserialization failures and network errors
-- Device IDs are auto-generated but can be customized
+## 🛠️ Development
 
-## Future Enhancements
+### Build Solution
+```bash
+dotnet build UdpProxy.Server.sln
+```
 
-- Message acknowledgment system
-- Clustering support for high availability
+### Run Tests
+```bash
+dotnet test
+```
+
+### Publish for Production
+```bash
+dotnet publish -c Release
+```
+
+## 🚀 Deployment
+
+### GitHub Actions CI/CD
+The solution includes automated build and deployment workflows:
+- `build-deploy.yml` - Builds and deploys UDP Server container
+- `build-deploy-webapp.yml` - Builds and deploys Portal container
+
+### Azure Container Instances
+Both components can be deployed to Azure Container Instances with environment variables for configuration.
+
+### Azure App Service
+The Portal can be deployed to Azure App Service with container deployment.
+
+## 🔍 Monitoring & Troubleshooting
+
+### Logs
+- UDP Server: Console output with message statistics
+- Portal: ASP.NET Core logs with Service Bus processing
+- Azure Service Bus: Dead letter queues for failed messages
+
+### Common Issues
+1. **UDP Port Binding**: Ensure port 8080 is available
+2. **Service Bus Connection**: Verify connection strings and permissions
+3. **SignalR Connection**: Check CORS configuration for cross-domain access
+4. **Message Format**: Ensure JSON serialization compatibility
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch
+3. Make changes with tests
+4. Submit pull request
+
+## 📚 Additional Resources
+
+- [Azure Service Bus Documentation](https://docs.microsoft.com/azure/service-bus/)
+- [Azure SignalR Service Documentation](https://docs.microsoft.com/azure/azure-signalr/)
+- [Blazor WebAssembly Documentation](https://docs.microsoft.com/aspnet/core/blazor/)
+- [.NET 8.0 Documentation](https://docs.microsoft.com/dotnet/)
